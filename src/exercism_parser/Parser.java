@@ -1,8 +1,10 @@
 package exercism_parser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.*;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
@@ -39,7 +41,7 @@ public class Parser {
             /* here you can access the attributes of the method.
              this method will be called for all methods in this 
              CompilationUnit, including inner class methods */
-            System.out.println(n.getName());
+//            System.out.println(n.getName());
             super.visit(n, arg);
         }
     }
@@ -68,13 +70,16 @@ public class Parser {
 //        }
 //    }
     
-    private static class VariableVisitor extends VoidVisitorAdapter<List<String>> {
+    private static class VariableVisitor extends VoidVisitorAdapter<HashMap> {
         @Override
-        public void visit(VariableDeclarator variable, List<String> collector) {
+        public void visit(VariableDeclarator variable, HashMap collector) {
         	// TODO: insert a println before the return stmt
 //        	System.out.println(variable.toString());
         	super.visit(variable, collector);
-        	collector.add(variable.toString());
+//        	System.out.println(variable.getNameAsString());
+//        	System.out.println(variable.getInitializer()); 
+        	//gets the initial value of variable, but is wrapped in Optional[value]
+        	collector.put(variable.getNameAsString(), variable.getInitializer());
 //        	return returnStmt;
         }
     }
@@ -98,18 +103,32 @@ public class Parser {
     	List<String> returnedValue = new ArrayList<String>();
     	new ReturnVisitor().visit(cu, returnedValue);
     	
-    	List<String> variableNames = new ArrayList<String>();
-    	VoidVisitor<List<String>> variableNameCollector = new VariableVisitor();
+    	HashMap<String, Optional> variableNames = new HashMap();
+    	VoidVisitor<HashMap> variableNameCollector = new VariableVisitor();
     	variableNameCollector.visit(cu, variableNames);
-    	variableNames.forEach(n -> System.out.println("Variable Collected: " + n));
+    	variableNames.keySet().forEach(n -> System.out.println("Variable Collected: " + n));
     	
     	if(returnedValue.get(0).contains("Hello World!")){
     		System.out.println("Code works!");
     	}
     	//Use regex to get the variable name between brackets? Right now it appears as Optional[Variable_Name]
-//    	else{
-//    		
-//    	}
+    	else{
+    		String returnedVariable = returnedValue.get(0);
+    		String answer = returnedVariable.substring(returnedVariable.indexOf("[")+1, returnedVariable.indexOf("]"));
+    		if(variableNames.containsKey(answer)){
+    			Optional variableValue = variableNames.get(answer);
+//    			variableValue = variableValue.substring(variableValue.indexOf("[")+1, variableValue.indexOf("]"));
+    			if (variableValue.get().toString().equals("Hello World!")){
+    				System.out.println("Code works!");
+    			}
+    			
+    		}
+    		else{
+    			System.out.println("This variable does not exist");
+    		}
+    		
+    		
+    	}
     	
 
     }
