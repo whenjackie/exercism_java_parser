@@ -44,13 +44,14 @@ public class Parser {
         }
     }
     
-    private static class ReturnVisitor extends VoidVisitorAdapter<Void> {
+    private static class ReturnVisitor extends VoidVisitorAdapter<List<String>> {
         @Override
-        public void visit(ReturnStmt returnStmt, Void args) {
+        public void visit(ReturnStmt returnStmt, List<String> returnedVal) {
         	// TODO: insert a println before the return stmt
 //        	System.out.println(returnStmt.toString());
         	System.out.println("Returning: " + returnStmt.getExpression().toString());
-        	super.visit(returnStmt, args);
+        	returnedVal.add(returnStmt.getExpression().toString());
+        	super.visit(returnStmt, returnedVal);
 //        	return returnStmt;
         }
     }
@@ -80,8 +81,6 @@ public class Parser {
     
     
     public static void main(String [] Args){
-//    	System.out.println("HELLO WORLD!");
-//    	CompilationUnit compilationUnit = JavaParser.parse("class A { }");
 //    	Optional<ClassOrInterfaceDeclaration> classA = compilationUnit.getClassByName("A");
     	
     	String code = "class HelloWorld { String helloWorld() {String x = \"Hello World!\"; return x;}}";
@@ -91,18 +90,27 @@ public class Parser {
     	CompilationUnit cu = JavaParser.parse(code);
     	JsonPrinter printer = new JsonPrinter(true);
     	System.out.println(printer.output(cu));
-
-//    	System.out.println(cu);
+    	
+    	//Testing out method that is supposed to print all method names
     	cu.accept(new MethodVisitor(), null);
-    	cu.accept(new ReturnVisitor(), null);
-//    	cu.accept(new VariableVisitor(), null);
+    	
+    	//Collect what is being returned
+    	List<String> returnedValue = new ArrayList<String>();
+    	new ReturnVisitor().visit(cu, returnedValue);
+    	
     	List<String> variableNames = new ArrayList<String>();
     	VoidVisitor<List<String>> variableNameCollector = new VariableVisitor();
     	variableNameCollector.visit(cu, variableNames);
     	variableNames.forEach(n -> System.out.println("Variable Collected: " + n));
     	
-//    	process(cu.findRootNode());
-
+    	if(returnedValue.get(0).contains("Hello World!")){
+    		System.out.println("Code works!");
+    	}
+    	//Use regex to get the variable name between brackets? Right now it appears as Optional[Variable_Name]
+//    	else{
+//    		
+//    	}
+    	
 
     }
 }
