@@ -26,13 +26,6 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.printer.JsonPrinter;
 
 public class Parser {
-	static void process(Node node){
-	    // Do something with the node
-	    for (Node child : node.getChildNodes()){
-	    	System.out.println(child);
-	        process(child);
-	    }
-	}
     /**
      * Simple visitor implementation for visiting MethodDeclaration nodes.
      */
@@ -71,17 +64,6 @@ public class Parser {
         }
       }
     
-//    private static class VariableVisitor extends VoidVisitorAdapter<List<String>> {
-//        @Override
-//        public void visit(FieldDeclaration variable, List<String> collector) {
-//        	// TODO: insert a println before the return stmt
-////        	System.out.println(variable.toString());
-//        	System.out.println(variable.toString());
-//        	super.visit(variable, collector);
-//        	collector.add(variable.toString());
-////        	return returnStmt;
-//        }
-//    }
     
     private static class VariableVisitor extends VoidVisitorAdapter<HashMap> {
         @Override
@@ -89,8 +71,8 @@ public class Parser {
         	// TODO: insert a println before the return stmt
 //        	System.out.println(variable.toString());
         	super.visit(variable, collector);
-//        	System.out.println(variable.getNameAsString());
-//        	System.out.println(variable.getInitializer()); 
+        	System.out.println(variable.getNameAsString());
+        	System.out.println(variable.getInitializer().get()); 
         	//gets the initial value of variable, but is wrapped in Optional[value]
         	collector.put(variable.getNameAsString(), variable.getInitializer());
 //        	return returnStmt;
@@ -134,15 +116,14 @@ public class Parser {
     		String returnedVariable = returnedValue.get(0);
     		String answer = returnedVariable.substring(returnedVariable.indexOf("[")+1, returnedVariable.indexOf("]"));
     		if(variableNames.containsKey(answer)){
-    			Optional variableValue = variableNames.get(answer);
-    			System.out.println(variableValue.get().toString());
-    			if (variableValue.get().toString().equals("Hello World!")){
+    			String variableValue = variableNames.get(answer).get().toString();
+    			if(variableValue.equals("\"Hello World!\"")){
     				System.out.println("Code works!");
     			}
     			
     		}
     		else{
-    			System.out.println("This variable does not exist");
+    			System.out.println("Code doesn't work");
     		}
     		
     		
