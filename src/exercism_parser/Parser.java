@@ -14,6 +14,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.VariableDeclarator;
+import com.github.javaparser.ast.expr.StringLiteralExpr;
 import com.github.javaparser.ast.observer.AstObserver;
 import com.github.javaparser.ast.observer.AstObserverAdapter;
 import com.github.javaparser.ast.observer.ObservableProperty;
@@ -50,13 +51,25 @@ public class Parser {
         @Override
         public void visit(ReturnStmt returnStmt, List<String> returnedVal) {
         	// TODO: insert a println before the return stmt
-//        	System.out.println(returnStmt.toString());
+        	System.out.println(returnStmt.toString());
         	System.out.println("Returning: " + returnStmt.getExpression().toString());
         	returnedVal.add(returnStmt.getExpression().toString());
         	super.visit(returnStmt, returnedVal);
-//        	return returnStmt;
         }
     }
+    
+    //From Peter's code
+    private static class HelloWorldFinder extends VoidVisitorAdapter<Void> {
+        boolean found = false;
+
+        @Override
+        public void visit(ReturnStmt ret, Void v) {
+        	if(ret.getExpression().get().isTypeExpr()){
+        		StringLiteralExpr sle = ret.getExpression().get().asStringLiteralExpr();
+                found = found || sle.asString().equals("Hello, World!");
+        	}
+        }
+      }
     
 //    private static class VariableVisitor extends VoidVisitorAdapter<List<String>> {
 //        @Override
@@ -103,12 +116,17 @@ public class Parser {
     	List<String> returnedValue = new ArrayList<String>();
     	new ReturnVisitor().visit(cu, returnedValue);
     	
+    	//Collecting variable name, values
     	HashMap<String, Optional> variableNames = new HashMap();
     	VoidVisitor<HashMap> variableNameCollector = new VariableVisitor();
     	variableNameCollector.visit(cu, variableNames);
     	variableNames.keySet().forEach(n -> System.out.println("Variable Collected: " + n));
     	
-    	if(returnedValue.get(0).contains("Hello World!")){
+    	//Just check if the string "Hello World!" is returned
+    	HelloWorldFinder hwf = new HelloWorldFinder();
+        cu.accept(hwf, null);
+        
+    	if(hwf.found){
     		System.out.println("Code works!");
     	}
     	//Use regex to get the variable name between brackets? Right now it appears as Optional[Variable_Name]
@@ -117,7 +135,7 @@ public class Parser {
     		String answer = returnedVariable.substring(returnedVariable.indexOf("[")+1, returnedVariable.indexOf("]"));
     		if(variableNames.containsKey(answer)){
     			Optional variableValue = variableNames.get(answer);
-//    			variableValue = variableValue.substring(variableValue.indexOf("[")+1, variableValue.indexOf("]"));
+    			System.out.println(variableValue.get().toString());
     			if (variableValue.get().toString().equals("Hello World!")){
     				System.out.println("Code works!");
     			}
